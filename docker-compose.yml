@@ -3,11 +3,11 @@ version: '3.8'
 services:
   cloudwatch-mcp-server:
     build:
-      context: .
-      dockerfile: mcp/src/cloudwatch-mcp-server/Dockerfile
+      context: mcp/src/cloudwatch-mcp-server
+      dockerfile: Dockerfile
     container_name: cloudwatch-mcp-server
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
@@ -27,8 +27,10 @@ services:
   slack-mcp-server:
     image: ghcr.io/korotovsky/slack-mcp-server:latest
     container_name: slack-mcp-server
-    ports:
-      - "3001:3001"
+    entrypoint: ["mcp-server"]
+    command: ["--transport", "http"]
+    expose:
+      - "3001"
     environment:
       - SLACK_MCP_XOXC_TOKEN=${SLACK_MCP_XOXC_TOKEN}
       - SLACK_MCP_XOXD_TOKEN=${SLACK_MCP_XOXD_TOKEN}
@@ -59,8 +61,8 @@ services:
 
   incident-iq-core:
     build:
-      context: .
-      dockerfile: Incident_IQ_Core/Dockerfile
+      context: Incident_IQ_Core
+      dockerfile: Dockerfile
     container_name: incident-iq-core
     ports:
       - "8050:8050"
