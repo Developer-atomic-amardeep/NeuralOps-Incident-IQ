@@ -2,15 +2,16 @@
 Archestra Configuration
 Centralized configuration for all Archestra agents and API settings.
 """
+import os
 
 
 # =============================================================================
 # API CONFIGURATION
 # =============================================================================
 
-BASE_URL = "http://localhost:9000"
-API_KEY = "archestra_JKWpeQaTnHoIqavfncZYRtiSlzMITlGDjCHfPkOGZkjJTWZMirwcbrjiJsaKiyoK"
-CHAT_API_KEY_ID = "5cfe9ced-5d81-4e2c-80de-711d79e585d9"
+BASE_URL = os.getenv("ARCHESTRA_BASE_URL", "http://localhost:9000")
+API_KEY = os.getenv("ARCHESTRA_API_KEY", "archestra_JKWpeQaTnHoIqavfncZYRtiSlzMITlGDjCHfPkOGZkjJTWZMirwcbrjiJsaKiyoK")
+CHAT_API_KEY_ID = os.getenv("ARCHESTRA_CHAT_API_KEY_ID", "5cfe9ced-5d81-4e2c-80de-711d79e585d9")
 
 # =============================================================================
 # LLM CONFIGURATION

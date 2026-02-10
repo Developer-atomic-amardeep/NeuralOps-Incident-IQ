@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  cloudwatch-mcp-server:
+    build:
+      context: .
+      dockerfile: mcp/src/cloudwatch-mcp-server/Dockerfile
+    container_name: cloudwatch-mcp-server
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+      - PYTHONUNBUFFERED=1
+    networks:
+      - incident-iq-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  slack-mcp-server:
+    image: ghcr.io/korotovsky/slack-mcp-server:latest
+    container_name: slack-mcp-server
+    ports:
+      - "3001:3001"
+    environment:
+      - SLACK_MCP_XOXC_TOKEN=${SLACK_MCP_XOXC_TOKEN}
+      - SLACK_MCP_XOXD_TOKEN=${SLACK_MCP_XOXD_TOKEN}
+      - SLACK_MCP_HOST=0.0.0.0
+      - SLACK_MCP_PORT=3001
+      - SLACK_MCP_ADD_MESSAGE_TOOL=true
+    networks:
+      - incident-iq-network
+
+  archestra-platform:
+    image: archestra/platform
+    container_name: archestra-platform
+    # To disable archestra exposure, comment out the ports section below
+    ports:
+      - "9000:9000"
+      - "3000:3000"
+    environment:
+      - ARCHESTRA_QUICKSTART=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - archestra-postgres-data:/var/lib/postgresql/data
+      - archestra-app-data:/app/data
+    networks:
+      - incident-iq-network
+    depends_on:
+      - cloudwatch-mcp-server
+      - slack-mcp-server
+
+  incident-iq-core:
+    build:
+      context: .
+      dockerfile: Incident_IQ_Core/Dockerfile
+    container_name: incident-iq-core
+    ports:
+      - "8050:8050"
+    networks:
+      - incident-iq-network
+    depends_on:
+      - archestra-platform
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ARCHESTRA_BASE_URL=http://archestra-platform:9000
+
+networks:
+  incident-iq-network:
+    driver: bridge
+
+volumes:
+  archestra-postgres-data:
+  archestra-app-data:
+
