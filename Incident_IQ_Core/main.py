@@ -132,33 +132,60 @@ async def test_archestra_connection():
         
         # Test 2: API authentication (only if connectivity worked)
         if test_result["connectivity"].get("status") == "success":
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    response = await client.get(
-                        f"{base_url}/api/chat/conversations",
-                        headers=headers,
-                        timeout=5.0
-                    )
-                    test_result["authentication"] = {
-                        "status": "success" if response.status_code == 200 else "failed",
-                        "status_code": response.status_code,
-                        "message": "Authentication successful" if response.status_code == 200 else f"Auth failed: {response.status_code}",
-                        "response_preview": response.text[:200] if response.text else None
+            # Try different authentication formats
+            auth_formats = [
+                ("Direct API Key", {"Authorization": config.API_KEY, "Content-Type": "application/json"}),
+                ("Bearer Prefix", {"Authorization": f"Bearer {config.API_KEY}", "Content-Type": "application/json"}),
+                ("X-API-Key Header", {"X-API-Key": config.API_KEY, "Content-Type": "application/json"}),
+            ]
+            
+            auth_results = {}
+            for format_name, test_headers in auth_formats:
+                try:
+                    async with httpx.AsyncClient(timeout=5.0) as client:
+                        response = await client.get(
+                            f"{base_url}/api/chat/conversations",
+                            headers=test_headers,
+                            timeout=5.0
+                        )
+                        auth_results[format_name] = {
+                            "status": "success" if response.status_code == 200 else "failed",
+                            "status_code": response.status_code,
+                            "message": "Authentication successful" if response.status_code == 200 else f"Auth failed: {response.status_code}",
+                            "response_preview": response.text[:200] if response.text else None
+                        }
+                        # If one format works, use it
+                        if response.status_code == 200:
+                            break
+                except httpx.HTTPStatusError as e:
+                    auth_results[format_name] = {
+                        "status": "failed",
+                        "status_code": e.response.status_code,
+                        "error": str(e),
+                        "message": f"HTTP error: {e.response.status_code}",
+                        "response_preview": e.response.text[:200] if e.response.text else None
                     }
-            except httpx.HTTPStatusError as e:
-                test_result["authentication"] = {
-                    "status": "failed",
-                    "status_code": e.response.status_code,
-                    "error": str(e),
-                    "message": f"HTTP error: {e.response.status_code}",
-                    "response_preview": e.response.text[:200] if e.response.text else None
-                }
-            except Exception as e:
-                test_result["authentication"] = {
-                    "status": "error",
-                    "error": str(e),
-                    "message": f"Error testing authentication on {variant_name}"
-                }
+                except Exception as e:
+                    auth_results[format_name] = {
+                        "status": "error",
+                        "error": str(e),
+                        "message": f"Error testing {format_name}"
+                    }
+            
+            # Find the working format
+            working_format = None
+            for format_name, result in auth_results.items():
+                if result.get("status") == "success":
+                    working_format = format_name
+                    break
+            
+            test_result["authentication"] = {
+                "formats_tested": list(auth_results.keys()),
+                "results": auth_results,
+                "working_format": working_format,
+                "status": "success" if working_format else "failed",
+                "message": f"Working format: {working_format}" if working_format else "All authentication formats failed"
+            }
         else:
             test_result["authentication"] = {
                 "status": "skipped",
