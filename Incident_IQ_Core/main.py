@@ -25,6 +25,23 @@ async def get_health():
     return {"message": "app running successfully!"}
 
 
+@api.get('/debug/config')
+async def debug_config():
+    """Debug endpoint to check if environment variables are loaded correctly."""
+    return {
+        "base_url": config.BASE_URL,
+        "api_key_set": bool(config.API_KEY),
+        "api_key_length": len(config.API_KEY) if config.API_KEY else 0,
+        "api_key_prefix": config.API_KEY[:20] + "..." if config.API_KEY and len(config.API_KEY) > 20 else config.API_KEY,
+        "chat_api_key_id_set": bool(config.CHAT_API_KEY_ID),
+        "chat_api_key_id": config.CHAT_API_KEY_ID,
+        "github_agent_id": config.GITHUB_AGENT_ID,
+        "cloudwatch_agent_id": config.AWS_CLOUDWATCH_AGENT_ID,
+        "slack_agent_id": config.SLACK_AGENT_ID,
+        "reasoning_agent_id": config.REASONING_INVESTIGATOR_AGENT_ID
+    }
+
+
 @api.post('/Investigator-Agent')
 async def invoke_investigator_api(prompt: UserPromptInput):
     """Non-streaming endpoint that returns full results."""

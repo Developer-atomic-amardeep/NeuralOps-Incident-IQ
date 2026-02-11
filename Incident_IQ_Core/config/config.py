@@ -29,12 +29,12 @@ MODEL_GPT4O = "gpt-4o"
 # =============================================================================
 
 # Data-gathering agents
-GITHUB_AGENT_ID = "9f26efa2-ade4-4bbe-808b-7d8fd4b11095"
-AWS_CLOUDWATCH_AGENT_ID = "ae3e7cec-3d6c-42fd-b64f-635ab6d0d8a8"
-SLACK_AGENT_ID = "27319db8-58a9-4a76-bc94-03b25bfce954"
+GITHUB_AGENT_ID = os.getenv("GITHUB_AGENT_ID", "9f26efa2-ade4-4bbe-808b-7d8fd4b11095")
+AWS_CLOUDWATCH_AGENT_ID = os.getenv("AWS_CLOUDWATCH_AGENT_ID", "ae3e7cec-3d6c-42fd-b64f-635ab6d0d8a8")
+SLACK_AGENT_ID = os.getenv("SLACK_AGENT_ID", "27319db8-58a9-4a76-bc94-03b25bfce954")
 
 # Reasoning/Analysis agent
-REASONING_INVESTIGATOR_AGENT_ID = "b846cf5f-19a5-456d-81ea-711427fe30ba"
+REASONING_INVESTIGATOR_AGENT_ID = os.getenv("REASONING_INVESTIGATOR_AGENT_ID", "b846cf5f-19a5-456d-81ea-711427fe30ba")
 
 # =============================================================================
 # DEFAULT AGENT MESSAGES
