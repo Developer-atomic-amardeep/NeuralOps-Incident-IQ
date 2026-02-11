@@ -182,6 +182,15 @@ async def test_archestra_connection():
         "recommended_url": working_urls[0]["url"] if working_urls else None
     }
     
+    # Add debug info about the API key being used
+    results["debug_info"] = {
+        "api_key_length": len(config.API_KEY) if config.API_KEY else 0,
+        "api_key_prefix": config.API_KEY[:15] + "..." if config.API_KEY and len(config.API_KEY) > 15 else config.API_KEY,
+        "api_key_suffix": "..." + config.API_KEY[-10:] if config.API_KEY and len(config.API_KEY) > 10 else config.API_KEY,
+        "authorization_header_format": f"Authorization: {config.API_KEY[:15]}..." if config.API_KEY else "Authorization: (empty)",
+        "note": "If authentication fails, verify the API key in Archestra UI: Settings > Your Account > API Keys"
+    }
+    
     return results
 
 
