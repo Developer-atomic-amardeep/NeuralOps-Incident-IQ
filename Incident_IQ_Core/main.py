@@ -1,6 +1,7 @@
 import json
 import asyncio
 import uvicorn
+import httpx
 from config import config
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -40,6 +41,148 @@ async def debug_config():
         "slack_agent_id": config.SLACK_AGENT_ID,
         "reasoning_agent_id": config.REASONING_INVESTIGATOR_AGENT_ID
     }
+
+
+@api.get('/debug/test-archestra-connection')
+async def test_archestra_connection():
+    """Test connectivity and authentication with archestra-platform using all possible URL variations."""
+    import socket
+    
+    # Get archestra-platform container IP if possible
+    archestra_ip = None
+    try:
+        archestra_ip = socket.gethostbyname("archestra-platform")
+    except:
+        pass
+    
+    # All possible URL variations to test
+    url_variants = [
+        ("archestra-platform:9000", "http://archestra-platform:9000"),
+        ("localhost:9000", "http://localhost:9000"),
+        ("127.0.0.1:9000", "http://127.0.0.1:9000"),
+    ]
+    
+    if archestra_ip:
+        url_variants.append((f"{archestra_ip}:9000", f"http://{archestra_ip}:9000"))
+    
+    # Add current config URL if not already in list
+    if config.BASE_URL not in [url for _, url in url_variants]:
+        url_variants.insert(0, ("config.BASE_URL", config.BASE_URL))
+    
+    results = {
+        "current_config_base_url": config.BASE_URL,
+        "archestra_container_ip": archestra_ip,
+        "api_key_set": bool(config.API_KEY),
+        "tests": {}
+    }
+    
+    headers = {
+        "Authorization": config.API_KEY,
+        "Content-Type": "application/json"
+    }
+    
+    # Test each URL variant
+    for variant_name, base_url in url_variants:
+        test_result = {
+            "url": base_url,
+            "connectivity": {},
+            "authentication": {}
+        }
+        
+        # Test 1: Basic connectivity (health check)
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                # Try /health endpoint first
+                try:
+                    response = await client.get(f"{base_url}/health", follow_redirects=True, timeout=5.0)
+                    test_result["connectivity"] = {
+                        "status": "success",
+                        "status_code": response.status_code,
+                        "message": f"Can reach {variant_name}",
+                        "response_preview": response.text[:100] if response.text else None
+                    }
+                except:
+                    # If /health doesn't exist, try root
+                    try:
+                        response = await client.get(f"{base_url}/", follow_redirects=True, timeout=5.0)
+                        test_result["connectivity"] = {
+                            "status": "success",
+                            "status_code": response.status_code,
+                            "message": f"Can reach {variant_name} (root endpoint)",
+                            "response_preview": response.text[:100] if response.text else None
+                        }
+                    except Exception as e:
+                        test_result["connectivity"] = {
+                            "status": "failed",
+                            "error": str(e),
+                            "message": f"Cannot reach {variant_name}"
+                        }
+        except httpx.ConnectError as e:
+            test_result["connectivity"] = {
+                "status": "failed",
+                "error": str(e),
+                "message": f"Cannot connect to {variant_name} - network/DNS issue"
+            }
+        except Exception as e:
+            test_result["connectivity"] = {
+                "status": "error",
+                "error": str(e),
+                "message": f"Unexpected error connecting to {variant_name}"
+            }
+        
+        # Test 2: API authentication (only if connectivity worked)
+        if test_result["connectivity"].get("status") == "success":
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    response = await client.get(
+                        f"{base_url}/api/chat/conversations",
+                        headers=headers,
+                        timeout=5.0
+                    )
+                    test_result["authentication"] = {
+                        "status": "success" if response.status_code == 200 else "failed",
+                        "status_code": response.status_code,
+                        "message": "Authentication successful" if response.status_code == 200 else f"Auth failed: {response.status_code}",
+                        "response_preview": response.text[:200] if response.text else None
+                    }
+            except httpx.HTTPStatusError as e:
+                test_result["authentication"] = {
+                    "status": "failed",
+                    "status_code": e.response.status_code,
+                    "error": str(e),
+                    "message": f"HTTP error: {e.response.status_code}",
+                    "response_preview": e.response.text[:200] if e.response.text else None
+                }
+            except Exception as e:
+                test_result["authentication"] = {
+                    "status": "error",
+                    "error": str(e),
+                    "message": f"Error testing authentication on {variant_name}"
+                }
+        else:
+            test_result["authentication"] = {
+                "status": "skipped",
+                "message": "Skipped - connectivity test failed"
+            }
+        
+        results["tests"][variant_name] = test_result
+    
+    # Summary: Find which URLs work
+    working_urls = []
+    for variant_name, test_result in results["tests"].items():
+        if test_result.get("authentication", {}).get("status") == "success":
+            working_urls.append({
+                "name": variant_name,
+                "url": test_result["url"],
+                "status_code": test_result.get("authentication", {}).get("status_code")
+            })
+    
+    results["summary"] = {
+        "working_urls": working_urls,
+        "recommended_url": working_urls[0]["url"] if working_urls else None
+    }
+    
+    return results
 
 
 @api.post('/Investigator-Agent')
