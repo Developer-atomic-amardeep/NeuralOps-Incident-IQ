@@ -1,15 +1,38 @@
 import { useState, useEffect } from "react";
 import { FileText, Database, Server, Clock, Download, Loader2, Binary, Cpu, Share2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { generatePDFFromMarkdown } from "@/lib/pdfGenerator";
 
 interface SidebarProps {
   progress: number;
   isAnalyzing: boolean;
+  finalResponse?: string;
 }
 
-export function Sidebar({ progress, isAnalyzing }: SidebarProps) {
+export function Sidebar({ progress, isAnalyzing, finalResponse = "" }: SidebarProps) {
   const [sessionTime, setSessionTime] = useState<string>("0m");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    if (!finalResponse) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      await generatePDFFromMarkdown(finalResponse, {
+        title: "Incident Analysis Report",
+        fontSize: 11,
+        lineHeight: 1.5,
+        margin: 20
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   useEffect(() => {
     const startTime = Date.now();
@@ -104,6 +127,26 @@ export function Sidebar({ progress, isAnalyzing }: SidebarProps) {
               <span className="text-slate-300">READY</span>
             )}
           </div>
+          
+          {progress >= 100 && finalResponse && (
+            <Button
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPDF}
+              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs py-2 h-auto"
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                  GENERATING...
+                </>
+              ) : (
+                <>
+                  <Download className="h-3 w-3 mr-2" />
+                  DOWNLOAD PDF
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Artifact List */}

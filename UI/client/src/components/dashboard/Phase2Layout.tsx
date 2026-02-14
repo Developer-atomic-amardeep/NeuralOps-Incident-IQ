@@ -85,7 +85,6 @@ export function SmokingGunPanel({
             {finalResponse ? (
               <div className="prose prose-invert prose-slate max-w-none">
                 <ReactMarkdown
-                  className="markdown-content"
                   components={{
                     h1: ({ children }) => (
                       <h1 className="text-2xl font-bold text-blue-400 mb-4 mt-6 first:mt-0 border-b border-blue-500/20 pb-2">

@@ -176,7 +176,7 @@ export function Dashboard() {
           )}
         </main>
 
-        <Sidebar progress={Math.floor(progress)} isAnalyzing={isAnalyzing} />
+        <Sidebar progress={Math.floor(progress)} isAnalyzing={isAnalyzing} finalResponse={finalResponse} />
       </div>
 
       {/* Mobile/Tablet layout - Scrollable with proper spacing */}

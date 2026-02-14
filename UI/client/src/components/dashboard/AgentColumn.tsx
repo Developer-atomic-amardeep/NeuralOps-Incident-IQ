@@ -168,7 +168,14 @@ export function AgentColumn({ type, isPhase2, logs, isAnalyzing }: AgentColumnPr
       {logs.length > 0 && (
         <ScrollArea ref={scrollRef} className="h-full w-full">
             <div className="p-4 space-y-3 font-mono text-[11px] leading-relaxed">
-                {logs.map((log) => (
+                {logs.map((log) => {
+                  // Truncate tool output messages when minimized (not in modal)
+                  const isToolOutput = log.message.startsWith("Tool output:");
+                  const displayMessage = !isZoomed && isToolOutput && log.message.length > 150
+                    ? log.message.substring(0, 150) + "..."
+                    : log.message;
+                  
+                  return (
                     <div key={log.id} className="flex gap-3 animate-in fade-in slide-in-from-left-1 duration-300">
                         <span className="text-slate-400 shrink-0 font-light select-none">[{log.timestamp}]</span>
                         <span className={cn(
@@ -178,10 +185,11 @@ export function AgentColumn({ type, isPhase2, logs, isAnalyzing }: AgentColumnPr
                             log.level === "success" ? "text-emerald-400" :
                             "text-slate-200"
                         )}>
-                            {log.message}
+                            {displayMessage}
                         </span>
                     </div>
-                ))}
+                  );
+                })}
                 <div className="h-4" />
             </div>
         </ScrollArea>
