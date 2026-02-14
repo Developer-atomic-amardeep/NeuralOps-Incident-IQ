@@ -1,0 +1,69 @@
+This is the "Director’s Cut" of the design blueprint. To make this feel like a premium enterprise tool, we need to focus on micro-interactions—the small animations and feedback loops that tell Sarah the system is working hard so she doesn't have to.
+
+🎨 Part 1: Detailed Designer’s Blueprint (UX/UI)
+1. The Layout Architecture (The "Golden Ratio" Grid)
+The Container: A fixed-height viewport (100vh) to prevent awkward scrolling. Use a Glassmorphism effect for cards (semi-transparent backgrounds with a 1px border) to maintain that "high-tech" feel.
+
+The Transition: When moving from Phase 1 to Phase 2, use a "Vertical Accordion" or "Shift & Dim" logic.
+
+Phase 1: The 3 Agent Columns take 80% of the screen.
+
+Phase 2: The Agent Columns shrink to the top 30% of the screen (becoming a "Summary Row"), and the Smoking Gun Panel slides up from the bottom to take the remaining 70%.
+
+2. The Header: "Command & Control"
+Three-Way Input: Instead of one big box, use three distinct input fields with a "Link" icon.
+
+Default State: Fields are auto-populated with context from the PagerDuty alert.
+
+The Pulse: The Health Badge shouldn't just be static; it should have a subtle 2-second "heartbeat" glow to reassure a tired engineer that the connection is live.
+
+The Trigger Button: * Normal: bg-blue-600 with a "Shield" icon.
+
+Loading: An outer ring rotates while the inner text pulses "Parsing Data...".
+
+Success: Momentarily turns green with a checkmark before resetting.
+
+3. Phase 1: The "Parallel Investigation" Grid
+Agent Identity Badges:
+
+GitHub Agent: Neon Purple border. Icon: GitBranch.
+
+AWS Agent: Safety Orange border. Icon: Server.
+
+Slack Agent: Slack-brand Green border. Icon: MessageSquare.
+
+The Stream Interaction:
+
+Auto-Scroll Lock: A small "Lock" icon at the bottom of the stream. If Sarah manually scrolls up to read something, the auto-scroll should pause and the icon should turn amber.
+
+The Tool Drawer (Micro-UI): Tool pills shouldn't just appear; they should "pop" in with a bounce.
+
+Label: GET_LOGS or SEARCH_COMMITS.
+
+On Click: Instead of a basic modal, use a Slide-over Panel from the right so Sarah doesn't lose sight of the other two agents.
+
+Completion State: When an agent finishes, the card's border should stop pulsing and settle into a solid, subtle glow.
+
+4. Phase 2: The "Smoking Gun" (Reasoning Investigator)
+The Hero Header: A large, bold title: CRITICAL FINDING: DEPLOYMENT #3847.
+
+The Evidence Timeline: Instead of a wall of text, use a vertical line connecting the findings.
+
+Node 1 (AWS): "Spike detected at 2:47 AM."
+
+Node 2 (GitHub): "PR #12 merged at 2:45 AM."
+
+Conclusion: "Race condition identified in auth_controller.py."
+
+The Action Zone: At the bottom of this panel, place two distinct buttons:
+
+Primary: Rollback Deployment (High contrast, red-to-orange gradient).
+
+Secondary: Mute Alert & Continue Monitoring.
+
+5. The Sidebar: "The Analysis Vault"
+Future Utility: This is where "Artifacts" live.
+
+PDF Generation Visual: A vertical progress bar that fills up as Phase 1 and Phase 2 complete.
+
+Skeleton States: Use shimmering gray boxes to represent the PDF page previews. This gives the user the feeling that a formal document is being "authored" in the background.
