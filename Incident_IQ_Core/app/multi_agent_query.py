@@ -21,6 +21,8 @@ class AgentConfig:
     name: str
     agent_id: str
     message: str = ""
+    model: Optional[str] = None
+    provider: Optional[str] = None
 
 
 class ArchestraMultiAgentClient:
@@ -55,14 +57,14 @@ class ArchestraMultiAgentClient:
             "Content-Type": "application/json"
         }
     
-    async def _create_conversation(self, client: httpx.AsyncClient, agent_id: str, title: str) -> str:
+    async def _create_conversation(self, client: httpx.AsyncClient, agent_id: str, title: str, model: Optional[str] = None, provider: Optional[str] = None) -> str:
         """Create a conversation and return its ID."""
         url = f"{self.base_url}/api/chat/conversations"
         payload = {
             "agentId": agent_id,
             "title": title,
-            "selectedModel": self.model,
-            "selectedProvider": self.provider,
+            "selectedModel": model or self.model,
+            "selectedProvider": provider or self.provider,
             "chatApiKeyId": self.chat_api_key_id
         }
         
@@ -161,7 +163,9 @@ class ArchestraMultiAgentClient:
                 conversation_id = await self._create_conversation(
                     client,
                     agent_config.agent_id,
-                    f"{agent_config.name} Query"
+                    f"{agent_config.name} Query",
+                    model=agent_config.model,
+                    provider=agent_config.provider
                 )
                 
                 result = await self._send_message_and_collect(
@@ -258,7 +262,9 @@ class ArchestraMultiAgentClient:
                 conversation_id = await self._create_conversation(
                     client,
                     agent_config.agent_id,
-                    f"{agent_name} Query"
+                    f"{agent_name} Query",
+                    model=agent_config.model,
+                    provider=agent_config.provider
                 )
                 
                 url = f"{self.base_url}/api/chat"

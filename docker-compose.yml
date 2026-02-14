@@ -88,8 +88,8 @@ services:
       context: Incident_IQ_Core
       dockerfile: Dockerfile
     container_name: incident-iq-core
-    ports:
-      - "8050:8050"
+    expose:
+      - "8050"
     networks:
       - incident-iq-network
     depends_on:
@@ -103,6 +103,40 @@ services:
       - AWS_CLOUDWATCH_AGENT_ID=${AWS_CLOUDWATCH_AGENT_ID}
       - SLACK_AGENT_ID=${SLACK_AGENT_ID}
       - REASONING_INVESTIGATOR_AGENT_ID=${REASONING_INVESTIGATOR_AGENT_ID}
+
+  ui:
+    build:
+      context: UI
+      dockerfile: Dockerfile
+    container_name: ui
+    expose:
+      - "5000"
+    networks:
+      - incident-iq-network
+    depends_on:
+      - incident-iq-core
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - HOST=0.0.0.0
+
+  nginx:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/certbot:/var/www/certbot:ro
+    networks:
+      - incident-iq-network
+    depends_on:
+      - ui
+      - incident-iq-core
+    restart: unless-stopped
 
 networks:
   incident-iq-network:

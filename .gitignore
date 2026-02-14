@@ -1,1 +1,10 @@
 .env
+
+# SSL Certificates - Never commit these!
+nginx/ssl/*.crt
+nginx/ssl/*.key
+nginx/ssl/*.pem
+nginx/ssl/*.cert
+nginx/ssl/*.p12
+nginx/ssl/*.pfx
+!nginx/ssl/.gitkeep

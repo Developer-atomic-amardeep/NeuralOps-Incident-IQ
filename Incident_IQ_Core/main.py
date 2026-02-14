@@ -49,17 +49,23 @@ async def invoke_investigator_api(prompt: UserPromptInput):
         AgentConfig(
             name="GITHUB_AGENT",
             agent_id=config.GITHUB_AGENT_ID,
-            message=prompt.GITHUB_AGENT_PROMPT
+            message=prompt.GITHUB_AGENT_PROMPT,
+            model=config.MODEL_GPT5_MINI,
+            provider=config.PROVIDER
         ),
         AgentConfig(
             name="AWS_CLOUDWATCH_AGENT",
             agent_id=config.AWS_CLOUDWATCH_AGENT_ID,
-            message=prompt.AWS_CLOUDWATCH_AGENT_PROMPT
+            message=prompt.AWS_CLOUDWATCH_AGENT_PROMPT,
+            model=config.MODEL_GPT5_MINI,
+            provider=config.PROVIDER
         ),
         AgentConfig(
             name="SLACK_AGENT",
             agent_id=config.SLACK_AGENT_ID,
-            message=prompt.SLACK_AGENT_PROMPT
+            message=prompt.SLACK_AGENT_PROMPT,
+            model=config.MODEL_GPT5_MINI,
+            provider=config.PROVIDER
         ),
     ]
 
@@ -70,7 +76,9 @@ async def invoke_investigator_api(prompt: UserPromptInput):
     reasoning_agent = AgentConfig(
         name="REASONING_INVESTIGATOR_AGENT",
         agent_id=config.REASONING_INVESTIGATOR_AGENT_ID,
-        message=investigation_prompt
+        message=investigation_prompt,
+        model=config.MODEL,
+        provider=config.PROVIDER
     )
     
     investigation_result = await client.query_agent(reasoning_agent)
@@ -98,17 +106,23 @@ async def invoke_investigator_api_stream(prompt: UserPromptInput):
             AgentConfig(
                 name="GITHUB_AGENT",
                 agent_id=config.GITHUB_AGENT_ID,
-                message=prompt.GITHUB_AGENT_PROMPT
+                message=prompt.GITHUB_AGENT_PROMPT,
+                model=config.MODEL_GPT5_MINI,
+                provider=config.PROVIDER
             ),
             AgentConfig(
                 name="AWS_CLOUDWATCH_AGENT",
                 agent_id=config.AWS_CLOUDWATCH_AGENT_ID,
-                message=prompt.AWS_CLOUDWATCH_AGENT_PROMPT
+                message=prompt.AWS_CLOUDWATCH_AGENT_PROMPT,
+                model=config.MODEL_GPT5_MINI,
+                provider=config.PROVIDER
             ),
             AgentConfig(
                 name="SLACK_AGENT",
                 agent_id=config.SLACK_AGENT_ID,
-                message=prompt.SLACK_AGENT_PROMPT
+                message=prompt.SLACK_AGENT_PROMPT,
+                model=config.MODEL_GPT5_MINI,
+                provider=config.PROVIDER
             ),
         ]
 
@@ -125,7 +139,9 @@ async def invoke_investigator_api_stream(prompt: UserPromptInput):
         reasoning_agent = AgentConfig(
             name="REASONING_INVESTIGATOR",
             agent_id=config.REASONING_INVESTIGATOR_AGENT_ID,
-            message=investigation_prompt
+            message=investigation_prompt,
+            model=config.MODEL,
+            provider=config.PROVIDER
         )
 
         queue: asyncio.Queue = asyncio.Queue()

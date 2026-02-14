@@ -21,8 +21,9 @@ CHAT_API_KEY_ID = os.getenv("ARCHESTRA_CHAT_API_KEY_ID", "5cfe9ced-5d81-4e2c-80d
 MODEL = "gpt-5"
 PROVIDER = "openai"
 
-# Alternative model for single agent testing
+# Alternative models
 MODEL_GPT4O = "gpt-4o"
+MODEL_GPT5_MINI = "gpt-5-mini"
 
 # =============================================================================
 # AGENT IDs
@@ -43,9 +44,15 @@ REASONING_INVESTIGATOR_AGENT_ID = os.getenv("REASONING_INVESTIGATOR_AGENT_ID", "
 # Default prompts for testing and development
 DEFAULT_GITHUB_MESSAGE = "List the last 4 commits from the repo 'hackfest-mono-repo' from my developer-atomic-amardeep's account, get the commits like any of the last ones no need to be specific for 24 hours only"
 
-DEFAULT_CLOUDWATCH_MESSAGE = "List me the logs from the logs group of last 24hours from the log group /incident-iq/api-errors, get me all the logs no need to be specific on errors only, like the mannually added too will work."
+DEFAULT_CLOUDWATCH_MESSAGE = """
+We got the following error reported by pager duty to us kindly look into this what might be the possibilities of causing this by investigating the logs and changes on the related resources that are disturbed as per the pager duty. this is the time around which you need to investigate keep in mind that aws mcp tools works only with the UTC time and time to investigate is 11:30:00 UTC. the time given in pagerduty logs are IST time based. 
+{ "incident_id": "PD-INC-99218", "status": "triggered", "service": "/aws/lambda/RevenueReconciliationEngine", "severity": "CRITICAL", "summary": "Critical Performance Degradation: RDS [prod-db-01]", "details": { "metric_name": "CPUUtilization", "threshold": "90%", "actual_value": "98.2%", "impact": "Revenue Reconciliation Engine failing SLAs", "last_success_run": "2026-02-14T16:30:00 IST (Duration: 24.0s)", "current_run_start": "2026-02-14T17:15:00 IST (Duration: 45.0s+)", "log_group": "/aws/lambda/RevenueReconciliationEngine", "region": "us-east-1" }, "timestamp": "2026-02-14T17:16:02 IST" }
+"""
 
-DEFAULT_SLACK_MESSAGE = "Get me all the messages on the channel just-a-random-chit-chat, can be any message no need to be specific on the errors or something, look for last 36 hours"
+DEFAULT_SLACK_MESSAGE = """
+we have got the following errors from the pager duty we need to find the relevant messages from the channels in the slack, which  points or hints to the problem reported by the pager duty.
+{ "incident_id": "PD-INC-99218", "status": "triggered", "service": "incidentiq-payment-service", "severity": "CRITICAL", "summary": "Critical Performance Degradation: RDS [prod-db-01]", "details": { "metric_name": "CPUUtilization", "threshold": "90%", "actual_value": "98.2%", "impact": "Revenue Reconciliation Engine failing SLAs", "last_success_run": "2026-02-14T16:30:00 IST (Duration: 24.0s)", "current_run_start": "2026-02-14T17:15:00 IST (Duration: 45.0s+)", "log_group": "/aws/lambda/incidentiq-payment-service", "region": "us-east-1" }, "timestamp": "2026-02-14T17:16:02 IST" }
+"""
 
 # =============================================================================
 # HELPER FUNCTIONS

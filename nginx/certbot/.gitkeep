@@ -1,0 +1,3 @@
+# This directory is for Let's Encrypt certbot challenges (if using certbot)
+# Not needed if using Cloudflare certificates
+
