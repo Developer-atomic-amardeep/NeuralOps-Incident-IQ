@@ -3,6 +3,7 @@ import asyncio
 import uvicorn
 from config import config
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 from app.multi_agent_query import (
@@ -12,6 +13,14 @@ from app.multi_agent_query import (
 )
 
 api = FastAPI()
+
+api.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class UserPromptInput(BaseModel):
