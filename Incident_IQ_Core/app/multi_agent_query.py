@@ -174,6 +174,7 @@ class ArchestraMultiAgentClient:
                 return {
                     "agent": agent_config.name,
                     "status": "success",
+                    "prompt": agent_config.message,
                     "response": result["text"],
                     "tool_calls": result["tool_calls"],
                     "tool_outputs": result["tool_outputs"],
@@ -183,6 +184,7 @@ class ArchestraMultiAgentClient:
             return {
                 "agent": agent_config.name,
                 "status": "error",
+                "prompt": agent_config.message,
                 "error": str(e),
                 "response": None,
                 "tool_calls": [],
@@ -209,6 +211,7 @@ class ArchestraMultiAgentClient:
                 processed_results.append({
                     "agent": agents[i].name,
                     "status": "error",
+                    "prompt": agents[i].message,
                     "error": str(result),
                     "response": None,
                     "tool_calls": [],
@@ -349,6 +352,7 @@ class ArchestraMultiAgentClient:
                 result = {
                     "agent": agent_name,
                     "status": "success",
+                    "prompt": agent_config.message,
                     "response": "".join(text_parts),
                     "tool_calls": tool_calls,
                     "tool_outputs": tool_outputs,
@@ -380,6 +384,7 @@ class ArchestraMultiAgentClient:
             return {
                 "agent": agent_name,
                 "status": "error",
+                "prompt": agent_config.message,
                 "error": str(e),
                 "response": None,
                 "tool_calls": [],
@@ -416,6 +421,7 @@ class ArchestraMultiAgentClient:
                     results.append({
                         "agent": agents[i].name,
                         "status": "error",
+                        "prompt": agents[i].message,
                         "error": str(result),
                         "response": None,
                         "tool_calls": [],
@@ -472,9 +478,11 @@ Below are findings from three different data sources. Your task is to:
     for result in results:
         agent_name = result.get('agent', 'Unknown Agent')
         status = result.get('status', 'unknown')
+        original_prompt = result.get('prompt', 'No prompt provided')
         
         prompt += f"### {agent_name}\n"
         prompt += f"**Status:** {status}\n\n"
+        prompt += f"**Query:**\n{original_prompt}\n\n"
         
         if status == 'success':
             response = result.get('response', 'No response')
