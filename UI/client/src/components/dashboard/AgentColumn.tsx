@@ -4,6 +4,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { DEFAULT_PROMPTS } from "@/lib/api";
 
 export type AgentType = "github" | "aws" | "slack";
 
@@ -54,6 +56,22 @@ export function AgentColumn({ type, isPhase2, logs, isAnalyzing }: AgentColumnPr
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
+  
+  // Map agent type to default prompt key
+  const getDefaultPrompt = () => {
+    switch (type) {
+      case "github":
+        return DEFAULT_PROMPTS.GITHUB_AGENT_PROMPT;
+      case "aws":
+        return DEFAULT_PROMPTS.AWS_CLOUDWATCH_AGENT_PROMPT;
+      case "slack":
+        return DEFAULT_PROMPTS.SLACK_AGENT_PROMPT;
+      default:
+        return "";
+    }
+  };
+  
+  const [prompt, setPrompt] = useState(getDefaultPrompt());
 
   useEffect(() => {
     if (autoScroll && scrollRef.current) {
@@ -97,6 +115,25 @@ export function AgentColumn({ type, isPhase2, logs, isAnalyzing }: AgentColumnPr
           <Maximize2 className="h-4 w-4" />
         </Button>
       )}
+    </div>
+  );
+
+  const PromptSection = () => (
+    <div 
+      className="border-b border-white/10 bg-slate-950/40 p-3"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Textarea
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        onClick={(e) => e.stopPropagation()}
+        className={cn(
+          "min-h-[60px] w-full bg-slate-900/50 border-white/10 text-[11px] font-mono text-slate-200 placeholder:text-slate-500",
+          "focus-visible:ring-1 focus-visible:ring-white/20 focus-visible:border-white/20",
+          "resize-none"
+        )}
+        placeholder="Enter prompt for this agent..."
+      />
     </div>
   );
 
@@ -166,12 +203,14 @@ export function AgentColumn({ type, isPhase2, logs, isAnalyzing }: AgentColumnPr
       onClick={() => setIsZoomed(true)}
       >
         <AgentHeader />
+        <PromptSection />
         <AgentContent />
       </div>
 
       <Dialog open={isZoomed} onOpenChange={setIsZoomed}>
         <DialogContent className="max-w-[90vw] w-[1200px] h-[80vh] bg-slate-950/95 backdrop-blur-2xl border-white/10 p-0 overflow-hidden flex flex-col gap-0 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
           <AgentHeader inModal />
+          <PromptSection />
           <div className="flex-1 overflow-auto">
              <AgentContent />
           </div>

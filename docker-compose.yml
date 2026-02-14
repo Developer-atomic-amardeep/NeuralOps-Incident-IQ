@@ -24,6 +24,29 @@ services:
       retries: 3
       start_period: 10s
 
+  cloudtrail-mcp-server:
+    build:
+      context: mcp/src/cloudtrail-mcp-server
+      dockerfile: Dockerfile
+    container_name: cloudtrail-mcp-server
+    expose:
+      - "8001"
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8001
+      - PYTHONUNBUFFERED=1
+    networks:
+      - incident-iq-network
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-X", "POST", "http://localhost:8001/mcp", "-H", "Content-Type: application/json", "-d", "{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   slack-mcp-server:
     image: ghcr.io/korotovsky/slack-mcp-server:latest
     container_name: slack-mcp-server
@@ -57,9 +80,10 @@ services:
       - incident-iq-network
     depends_on:
       - cloudwatch-mcp-server
+      - cloudtrail-mcp-server
       - slack-mcp-server
 
-  incident-iq-core:
+  incident-iq-core: 
     build:
       context: Incident_IQ_Core
       dockerfile: Dockerfile
