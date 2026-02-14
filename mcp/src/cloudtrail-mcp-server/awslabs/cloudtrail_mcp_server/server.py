@@ -14,20 +14,21 @@
 
 """awslabs cloudtrail MCP Server implementation."""
 
+import os
+
 from awslabs.cloudtrail_mcp_server.tools import CloudTrailTools
+from fastmcp import FastMCP
 from loguru import logger
-from mcp.server.fastmcp import FastMCP
+
+
+# Default configuration for StreamableHTTP transport
+DEFAULT_HOST = os.getenv('MCP_HOST', '0.0.0.0')
+DEFAULT_PORT = int(os.getenv('MCP_PORT', '8001'))
 
 
 mcp = FastMCP(
-    'awslabs.cloudtrail-mcp-server',
+    name='awslabs.cloudtrail-mcp-server',
     instructions='Use this MCP server to query AWS CloudTrail events for security investigations, compliance auditing, and operational troubleshooting. Supports event lookup by various attributes (username, event name, resource name, etc.), user activity analysis, API call tracking, and advanced CloudTrail Lake SQL queries for complex analytics. Can search the last 90 days of management events and provides detailed event summaries and activity analysis.',
-    dependencies=[
-        'boto3',
-        'botocore',
-        'pydantic',
-        'loguru',
-    ],
 )
 
 # Initialize and register CloudTrail tools
@@ -41,8 +42,15 @@ except Exception as e:
 
 
 def main():
-    """Run the MCP server."""
-    mcp.run()
+    """Main entry point for the server."""
+    logger.info(f'Starting StreamableHTTP server on {DEFAULT_HOST}:{DEFAULT_PORT}')
+
+    # Start the MCP server with StreamableHTTP transport
+    mcp.run(
+        transport='streamable-http',
+        host=DEFAULT_HOST,
+        port=DEFAULT_PORT,
+    )
 
 
 if __name__ == '__main__':

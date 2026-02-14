@@ -22,15 +22,21 @@ class TestMain:
     """Tests for the main function."""
 
     @patch('awslabs.cloudtrail_mcp_server.server.mcp.run')
+    @patch('awslabs.cloudtrail_mcp_server.server.logger')
     @patch('sys.argv', ['awslabs.cloudtrail-mcp-server'])
-    def test_main_default(self, mock_run):
+    def test_main_default(self, mock_logger, mock_run):
         """Test main function with default arguments."""
         # Call the main function
         main()
 
         # Check that mcp.run was called with the correct arguments
         mock_run.assert_called_once()
-        assert mock_run.call_args[1].get('transport') is None
+        assert mock_run.call_args[1].get('transport') == 'streamable-http'
+        assert mock_run.call_args[1].get('host') == '0.0.0.0'
+        assert mock_run.call_args[1].get('port') == 8001
+        # Verify logger was called with startup message
+        mock_logger.info.assert_called_once()
+        assert 'StreamableHTTP server' in str(mock_logger.info.call_args)
 
     def test_module_execution(self):
         """Test the module execution when run as __main__."""

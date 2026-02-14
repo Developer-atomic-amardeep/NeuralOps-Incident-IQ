@@ -64,7 +64,8 @@ ENV PATH="/app/.venv/bin:$PATH:/usr/sbin" \
 
 # Install other tools as needed for the MCP server
 # Add non-root user and ability to change directory into /root
-RUN dnf install -y shadow-utils procps && \
+# curl is needed for HTTP healthchecks
+RUN dnf install -y --allowerasing shadow-utils procps curl && \
     dnf clean all && \
     groupadd --force --system app && \
     useradd app -g app -d /app && \
@@ -79,6 +80,13 @@ COPY ./docker-healthcheck.sh /usr/local/bin/docker-healthcheck.sh
 
 # Run as non-root
 USER app
+
+# Expose the StreamableHTTP port
+EXPOSE 8001
+
+# Environment variables for StreamableHTTP transport
+ENV MCP_HOST=0.0.0.0
+ENV MCP_PORT=8001
 
 # When running the container, add --db-path and a bind mount to the host's db file
 HEALTHCHECK --interval=60s --timeout=10s --start-period=10s --retries=3 CMD ["docker-healthcheck.sh"]

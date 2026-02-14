@@ -14,10 +14,21 @@
 # limitations under the License.
 
 SERVER="cloudtrail-mcp-server"
+MCP_HOST="${MCP_HOST:-0.0.0.0}"
+MCP_PORT="${MCP_PORT:-8001}"
 
-# Check if the server process is running
+# Check if the HTTP server is responding
+# StreamableHTTP servers respond to POST requests on /mcp endpoint
+if curl -sf -X POST "http://localhost:${MCP_PORT}/mcp" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"ping","id":1}' > /dev/null 2>&1; then
+  echo -n "$SERVER HTTP endpoint is healthy";
+  exit 0;
+fi;
+
+# Fallback: Check if the server process is running
 if pgrep -P 0 -a -l -x -f "/app/.venv/bin/python3? /app/.venv/bin/awslabs.$SERVER" > /dev/null; then
-  echo -n "$SERVER is running";
+  echo -n "$SERVER process is running";
   exit 0;
 fi;
 
