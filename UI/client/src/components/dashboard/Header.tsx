@@ -1,8 +1,9 @@
-import { Shield, Check, Loader2, Link as LinkIcon } from "lucide-react";
+import { Shield, Check, Loader2, Link as LinkIcon, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   onTrigger: () => void;
@@ -10,6 +11,7 @@ interface HeaderProps {
 }
 
 export function Header({ onTrigger, isPhase2 }: HeaderProps) {
+  const { logout } = useAuth();
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [pulseActive, setPulseActive] = useState(false);
 
@@ -79,6 +81,18 @@ export function Header({ onTrigger, isPhase2 }: HeaderProps) {
           {status === "idle" && "ANALYZE"}
           {status === "loading" && <Loader2 className="h-4 w-4 animate-spin" />}
           {status === "success" && <Check className="h-4 w-4" />}
+        </Button>
+
+        <div className="h-6 w-px bg-white/20 mx-2" />
+
+        <Button
+          onClick={logout}
+          variant="ghost"
+          size="sm"
+          className="h-9 px-3 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+          title="Logout"
+        >
+          <LogOut className="h-4 w-4" />
         </Button>
       </div>
     </header>

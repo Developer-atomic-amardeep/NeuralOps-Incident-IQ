@@ -2,7 +2,8 @@ import json
 import asyncio
 import uvicorn
 from config import config
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
@@ -13,6 +14,7 @@ from app.multi_agent_query import (
 )
 
 api = FastAPI()
+security = HTTPBearer(auto_error=False)
 
 api.add_middleware(
     CORSMiddleware,
@@ -29,13 +31,53 @@ class UserPromptInput(BaseModel):
     AWS_CLOUDWATCH_AGENT_PROMPT: str
 
 
+class TokenVerifyRequest(BaseModel):
+    token: str
+
+
+async def verify_token(credentials: HTTPAuthorizationCredentials | None = Depends(security)):
+    """Dependency to verify authentication token."""
+    if not config.AUTH_TOKEN:
+        return True
+    
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if credentials.credentials != config.AUTH_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return True
+
+
 @api.get('/health_incident_iq')
 async def get_health():
     return {"message": "app running successfully!"}
 
 
+@api.post('/verify-token')
+async def verify_token_endpoint(request: TokenVerifyRequest):
+    """Verify if the provided token is valid."""
+    if not config.AUTH_TOKEN:
+        return {"valid": True, "message": "Authentication not configured"}
+    
+    if request.token == config.AUTH_TOKEN:
+        return {"valid": True, "message": "Token is valid"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+
+
 @api.post('/Investigator-Agent')
-async def invoke_investigator_api(prompt: UserPromptInput):
+async def invoke_investigator_api(prompt: UserPromptInput, _: bool = Depends(verify_token)):
     """Non-streaming endpoint that returns full results."""
     client = ArchestraMultiAgentClient(
         base_url=config.BASE_URL,
@@ -90,7 +132,7 @@ async def invoke_investigator_api(prompt: UserPromptInput):
 
 
 @api.post('/Investigator-Agent/stream')
-async def invoke_investigator_api_stream(prompt: UserPromptInput):
+async def invoke_investigator_api_stream(prompt: UserPromptInput, _: bool = Depends(verify_token)):
     """SSE streaming endpoint that streams all events."""
     
     async def event_generator():

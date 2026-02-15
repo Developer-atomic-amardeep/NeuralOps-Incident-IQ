@@ -1,6 +1,20 @@
 // API Configuration
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
+/**
+ * Get authentication headers
+ */
+function getAuthHeaders(): HeadersInit {
+  const token = sessionStorage.getItem("auth_token");
+  const headers: HeadersInit = {};
+  
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  
+  return headers;
+}
+
 // Agent prompts - you can customize these
 export const DEFAULT_PROMPTS = {
   GITHUB_AGENT_PROMPT: "List the last 4 commits from the repo 'hackfest-mono-repo' from my developer-atomic-amardeep's account, get the commits like any of the last ones no need to be specific for 24 hours only",
@@ -47,6 +61,25 @@ export async function healthCheck(): Promise<boolean> {
     return data.message === "app running successfully!";
   } catch (error) {
     console.error("Health check failed:", error);
+    return false;
+  }
+}
+
+/**
+ * Verify token with backend
+ */
+export async function verifyToken(token: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/verify-token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Token verification failed:", error);
     return false;
   }
 }
@@ -156,6 +189,7 @@ export async function streamInvestigatorAnalysis(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(customPrompts || DEFAULT_PROMPTS),
       signal: controller.signal,
@@ -165,6 +199,10 @@ export async function streamInvestigatorAnalysis(
     console.log("📥 Response headers:", response.headers);
 
     if (!response.ok) {
+      if (response.status === 401) {
+        sessionStorage.removeItem("auth_token");
+        window.location.reload();
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
